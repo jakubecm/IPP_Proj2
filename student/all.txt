@@ -1,0 +1,416 @@
+<?php
+
+namespace IPP\Student;
+
+
+class Arg {
+    public string $type;
+    public string|int|bool $value;
+
+
+    public function __construct(string $type, string $value){
+        $this->type = $type;
+        $this->value = $value;
+        $this->castValue();
+    }
+
+    // write a method that will check the argument type and cast it to the value
+    private function castValue(): void{
+        // check that the value is not empty
+        if(empty($this->value)){
+            $this->value = "";
+            return;
+        }
+        switch ($this->type){
+            case 'int':
+                // it can be a decimal, hexadecimal or octal number
+                if(preg_match('/^0x[0-9a-f]+$/i', $this->value)){
+                    $this->value = intval($this->value, 16);
+                }
+                elseif(preg_match('/^0[0-7]+$/i', $this->value)){
+                    $this->value = intval($this->value, 8);
+                }
+                else{
+                    $this->value = intval($this->value);
+                }
+                
+            case 'bool':
+                $this->value = $this->value === 'true';
+                break;
+            case 'string':
+                $this->value = preg_replace_callback('/\\\\\d{3}/', function ($matches) {
+                    return chr(intval(substr($matches[0], 1)));
+                }, $this->value);
+                break;
+
+            // add cases for var, label, type, nil???
+            default:
+                throw new \Exception("Unknown type: {$this->type}");
+        }
+    }
+
+}<?php
+
+namespace IPP\Student;
+
+class Frame{
+    /** @var array<string, Variable> */
+    protected array $variables;
+
+    public function __construct()
+    {
+        $this->variables = [];
+    }
+
+    public function getVariable(string $name): Variable
+    {
+        if (!array_key_exists($name, $this->variables)) {
+            // exit program
+            exit(54);
+        }
+        return $this->variables[$name];
+    }
+
+    public function addVariable(string $var_name): void
+    {
+        if (array_key_exists($var_name, $this->variables)) {
+            // exit program
+            exit(52);
+        }
+        $this->variables[$var_name] = new Variable($var_name, null);
+    }
+}<?php
+
+namespace IPP\Student;
+
+class FrameHandler{
+
+    private Frame $globalFrame;
+    private Frame|null $temporaryFrame;
+    private Stack $localFrame;
+
+    public function __construct()
+    {
+        $this->globalFrame = new Frame();
+        $this->temporaryFrame = null;
+        $this->localFrame = new Stack();
+    }
+
+    public function insertVariable(string $variable): void
+    {
+        // split the variable string on symbol @
+        $variable = explode('@', $variable);
+        $frame = $variable[0];
+        $var_name = $variable[1];
+
+
+        switch ($frame) {
+            case 'GF':
+                $this->globalFrame->addVariable($var_name);
+                break;
+            case 'LF':
+                if ($this->localFrame->isEmpty()) {
+                    // exit program
+                    exit(55);
+                }
+                $this->localFrame->top()->addVariable($var_name);
+                break;
+            case 'TF':
+                // check if temporary frame exists
+                if ($this->temporaryFrame === null) {
+                    // exit program
+                    exit(55);
+                }
+                $this->temporaryFrame->addVariable($var_name);
+                break;
+            default:
+                // exit program
+                exit(32);
+        }
+
+    }
+
+    public function findVariable(string $variable): Variable
+    {
+        // split the variable string on symbol @
+        $variable = explode('@', $variable);
+        $frame = $variable[0];
+        $var_name = $variable[1];
+
+        switch ($frame) {
+            case 'GF':
+                return $this->globalFrame->getVariable($var_name);
+            case 'LF':
+                if ($this->localFrame->isEmpty()) {
+                    // exit program
+                    exit(55);
+                }
+                return $this->localFrame->top()->getVariable($var_name);
+            case 'TF':
+                // check if temporary frame exists
+                if ($this->temporaryFrame === null) {
+                    // exit program
+                    exit(55);
+                }
+                return $this->temporaryFrame->getVariable($var_name);
+            default:
+                // exit program
+                exit(32);
+        }
+    }
+}<?php
+
+namespace IPP\Student;
+
+abstract class RawInstruction
+{
+
+    protected Interpreter $interpreter;
+    public int $order;
+    protected string $opCode;
+
+    /** @var array<Arg> */
+    protected array $arguments;
+
+    public function __construct(Interpreter $interpreter, \DOMElement $xmlElement)
+    {
+        $this->interpreter = $interpreter;
+        $this->order = intval($xmlElement->getAttribute('order'));
+        $this->opCode = $xmlElement->getAttribute('opcode');
+        $this->arguments = $this->processArgs($xmlElement);
+    }
+
+    abstract public function execute(): void;
+
+
+    /**
+     * Processes XML element arguments and returns an array of Arg objects.
+     *
+     * @param \DOMElement $xmlElement The XML element to process.
+     * @return Arg[] The processed arguments as an array of Arg objects.
+     */
+    public function processArgs(\DOMElement $xmlElement): array 
+    {
+        $processedArgs = [];
+        for ($i = 1; $i <= 3; $i++) {
+            $arg = $xmlElement->getElementsByTagName("arg$i");
+            if ($arg->length > 0) {
+                $arg = $arg->item(0);
+                if ($arg instanceof \DOMElement) {
+                    $type = $arg->getAttribute('type');
+                    $value = $arg->nodeValue;
+                    $processedArgs[] = new Arg($type, $value);
+                }
+            } else {
+                throw new \Exception("Missing argument $i for instruction {$this->opCode}");
+            }
+        }
+        return $processedArgs;
+    }
+}
+
+
+class DEFVAR extends RawInstruction
+{
+    public function execute(): void
+    {
+        // Logic to define a variable
+        echo "Defining variable: {$this->arguments[0]->value}\n";
+    }
+}
+
+class WRITE extends RawInstruction
+{
+    public function execute(): void
+    {
+        $argument = $this->arguments[0];
+        echo $argument->value . "\n";
+    }
+}
+<?php
+
+namespace IPP\Student;
+
+class InstructionFactory
+{
+
+    public static function createInstruction(Interpreter $interpret, \DOMElement $xmlElement, string $opcode): RawInstruction
+    {
+        switch ($opcode) {
+            case 'DEFVAR':
+                return new DEFVAR($interpret, $xmlElement);
+            case 'WRITE':
+                return new WRITE($interpret, $xmlElement);
+            default:
+                throw new \Exception("Unknown opcode: $opcode");
+        }
+    }
+}
+<?php
+
+namespace IPP\Student;
+
+use IPP\Core\AbstractInterpreter;
+use IPP\Core\Exception\NotImplementedException;
+
+class Interpreter extends AbstractInterpreter
+{
+    public \DOMDocument $xmlFile;
+
+    /** @var array<RawInstruction> */
+    protected array $instructions = [];
+
+    protected int $instructionPointer;
+    protected FrameHandler $frameHandler;
+    
+
+    public function execute(): int
+    {
+        $this->loadAndPrepareInstructions();
+        $this->frameHandler = new FrameHandler();
+
+        while ($this->instructionPointer < count($this->instructions)) {
+            $this->instructions[$this->instructionPointer]->execute();
+            $this->instructionPointer++;
+        }
+        return 0;
+
+
+        // $val = $this->input->readString();
+        // $this->stderr->writeString("stderr");
+        //throw new NotImplementedException;
+    }
+
+    private function loadAndPrepareInstructions(): void
+    {
+        $this->xmlFile = $this->source->getDOMDocument();
+        // Validate XML ???
+        $this->instructionPointer = 0;
+        $this->instructions = $this->parseInstructions($this->xmlFile);
+        $this->sortInstructions();
+    }
+
+    /**
+     * Processes XML file and returns an array of instruction objects.
+     *
+     * @param \DOMDocument $xmlFile The XML file to process.
+     * @return RawInstruction[] The parsed instructions as an array of RawInstruction objects.
+     */
+    private function parseInstructions(\DOMDocument $xmlFile): array
+    {
+        $parsedInstructions = [];
+        $xmlInstructions = $xmlFile->getElementsByTagName('instruction');
+        foreach ($xmlInstructions as $instruction) {
+            $opcode = $instruction->getAttribute('opcode');
+            $instructionObj = InstructionFactory::createInstruction($this, $instruction, $opcode);
+            $parsedInstructions[] = $instructionObj;
+        }
+        return $parsedInstructions;
+    }
+
+    private function sortInstructions(): void
+    {
+        usort($this->instructions, function ($a, $b) {
+            return $a->order - $b->order;
+        });
+    }
+}
+<?php
+
+namespace IPP\Student;
+
+class Stack{
+
+    /**
+     * @var mixed[] Stack elements
+     */
+    private array $stack;
+
+    public function __construct(){
+        $this->stack = [];
+    }
+
+    /**
+     * Pushes an item onto the stack.
+     *
+     * @param mixed $item The item to push.
+     * @return void
+     */
+    public function push($item){
+        array_push($this->stack, $item);
+    }
+
+    /**
+     * Pops an item from the stack.
+     *
+     * @return mixed The popped item.
+     * @throws \Exception If the stack is empty.
+     */
+    public function pop(){
+        if($this->isEmpty()){
+            throw new \Exception("Stack is empty");
+        }
+        return array_pop($this->stack);
+    }
+
+    /**
+     * Checks if the stack is empty.
+     *
+     * @return bool True if the stack is empty, false otherwise.
+     */
+    public function isEmpty(){
+        return empty($this->stack);
+    }
+
+    /**
+     * Returns the item at the top of the stack without removing it.
+     *
+     * @return mixed The item at the top of the stack.
+     */
+    public function top(){
+        return end($this->stack);
+    }
+
+}<?php
+
+namespace IPP\Student;
+
+class Variable{
+
+    private string $name;
+    private string|null $type;
+    private string|int|bool|null $value;
+
+    public function __construct(string $name, string|null $type, string|int|bool|null $value = null)
+    {
+        $this->name = $name;
+        $this->type = $type;
+        $this->value = $value;
+    }
+
+    public function getName(): string
+    {
+        return $this->name;
+    }
+
+    public function getValue(): string|int|bool|null
+    {
+        return $this->value;
+    }
+
+    public function setValue(string|int|bool|null $value): void
+    {
+        $this->value = $value;
+    }
+
+    // function that checks if variable is initialized
+    public function isInitialized(): bool
+    {
+        if ($this->value === null && $this->type === null) {
+            // exit program
+            exit(21);
+        }
+
+        return true;
+    }
+}
