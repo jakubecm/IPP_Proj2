@@ -10,20 +10,29 @@ class Interpreter extends AbstractInterpreter
     public \DOMDocument $xmlFile;
 
     /** @var array<RawInstruction> */
-    protected array $instructions = [];
+    private array $instructions = [];
 
-    protected int $instructionPointer;
+    private int $instructionPointer;
     public FrameHandler $frameHandler;
+    public Stack $callStack;
     
 
     public function execute(): int
     {
         $this->loadAndPrepareInstructions();
         $this->frameHandler = new FrameHandler();
+        $this->callStack = new Stack();
+        $previousInstructionPointer = $this->instructionPointer;
 
         while ($this->instructionPointer < count($this->instructions)) {
+
             $this->instructions[$this->instructionPointer]->execute();
-            $this->instructionPointer++;
+
+            if ($previousInstructionPointer == $this->instructionPointer) {
+                $this->instructionPointer++;
+            } 
+            $previousInstructionPointer = $this->instructionPointer;
+            
         }
         return 0;
 
@@ -64,5 +73,29 @@ class Interpreter extends AbstractInterpreter
         usort($this->instructions, function ($a, $b) {
             return $a->order - $b->order;
         });
+    }
+
+    public function getInstructionPointer(): int
+    {
+        return $this->instructionPointer;
+    }
+
+    public function setInstructionPointer(int $instructionPointer): void
+    {
+        $this->instructionPointer = $instructionPointer;
+    }
+
+    public function jmp_label(string $label): void
+    {
+        for ($i = 0; $i < count($this->instructions); $i++) {
+            if ($this->instructions[$i]->getOpCode() === 'LABEL' && $this->instructions[$i]->getArguments()[0]->value === $label) {
+                $this->instructionPointer = $i;
+                return;
+            }
+        }
+
+        // label not found
+        echo "Label $label not found\n";
+        exit(52);
     }
 }

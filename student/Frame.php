@@ -15,6 +15,7 @@ class Frame{
     {
         if (!array_key_exists($name, $this->variables)) {
             // exit program
+            echo "Variable $name does not exist\n";
             exit(54);
         }
         return $this->variables[$name];
@@ -24,6 +25,7 @@ class Frame{
     {
         if (array_key_exists($var_name, $this->variables)) {
             // exit program
+            echo "Variable $var_name already exists\n";
             exit(52);
         }
         $this->variables[$var_name] = new Variable($var_name, null);
