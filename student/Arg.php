@@ -61,6 +61,8 @@ class Arg {
                     exit(ReturnCode::INVALID_SOURCE_STRUCTURE);
                 }
                 break;
+            case 'nil':
+                break;
 
             // add cases for var, label, type, nil???
             default:

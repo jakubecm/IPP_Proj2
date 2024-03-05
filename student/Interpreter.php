@@ -12,6 +12,9 @@ class Interpreter extends AbstractInterpreter
     /** @var array<RawInstruction> */
     private array $instructions = [];
 
+    /** @var array<string> */
+    public array $labelDefinitions = [];
+
     private int $instructionPointer;
     public FrameHandler $frameHandler;
     public Stack $callStack;
@@ -25,33 +28,29 @@ class Interpreter extends AbstractInterpreter
         $this->callStack = new Stack();
         $this->dataStack = new Stack();
 
-        $previousInstructionPointer = $this->instructionPointer;
-
         while ($this->instructionPointer < count($this->instructions)) {
-
-            $this->instructions[$this->instructionPointer]->execute();
-
-            if ($previousInstructionPointer == $this->instructionPointer) {
-                $this->instructionPointer++;
-            } 
-            $previousInstructionPointer = $this->instructionPointer;
             
+            $currentInstructionPointer = $this->instructionPointer;
+            $this->instructions[$currentInstructionPointer]->execute();
+
+            // Check if the current instruction was a JUMP and successfully changed the pointer
+            if ($currentInstructionPointer == $this->instructionPointer) {
+                // If not, increment to proceed to the next instruction
+                $this->instructionPointer++;
+            }
         }
         
         return 0;
-
-
-        //$val = $this->input->readString();
-        // $this->stderr->writeString("stderr");
-        //throw new NotImplementedException;
     }
 
     private function loadAndPrepareInstructions(): void
     {
         $this->xmlFile = $this->source->getDOMDocument();
+        XMLValidator::validateXMLStructure($this->xmlFile, $this);
         $this->instructionPointer = 0;
         $this->instructions = $this->parseInstructions($this->xmlFile);
         $this->sortInstructions();
+        $this->mapLabelsToSortedInstructions();
     }
 
     /**
@@ -89,18 +88,30 @@ class Interpreter extends AbstractInterpreter
         $this->instructionPointer = $instructionPointer;
     }
 
-    public function jmp_label(string $label): void
+    private function mapLabelsToSortedInstructions(): void
     {
-        for ($i = 0; $i < count($this->instructions); $i++) {
-            if ($this->instructions[$i]->getOpCode() === 'LABEL' && $this->instructions[$i]->getArguments()[0]->value === $label) {
-                $this->instructionPointer = $i;
-                return;
+        $this->labelDefinitions = [];
+
+        foreach ($this->instructions as $index => $instruction) {
+            if ($instruction->getOpCode() === 'LABEL') {
+                $labelName = $instruction->getArguments()[0]->value;
+                if (isset($this->labelDefinitions[$labelName])) {
+                    echo "Error: Label '$labelName' redefined in sorted instructions.\n";
+                    exit(52); 
+                }
+                $this->labelDefinitions[$labelName] = $index; 
             }
         }
+    }
 
-        // label not found
-        echo "Label $label not found\n";
-        exit(52);
+    public function jmp_label(string $label): void
+    {
+        if (isset($this->labelDefinitions[$label])) {
+            $this->instructionPointer = $this->labelDefinitions[$label];
+        } else {
+            echo "Label $label not found\n";
+            exit(52); 
+        }
     }
 
     public function readInput(string $type): string|int|bool
