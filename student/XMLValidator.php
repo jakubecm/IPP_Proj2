@@ -11,6 +11,12 @@ class XMLValidator
         $orderValues = [];
 
         foreach ($instructions as $instruction) {
+
+            if(!$instruction instanceof \DOMElement) {
+                echo "Internal error - XML structure.\n";
+                exit(99);
+            }
+
             $order = $instruction->getAttribute('order');
 
             if (isset($orderValues[$order])) {

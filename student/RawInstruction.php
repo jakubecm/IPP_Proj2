@@ -46,6 +46,11 @@ abstract class RawInstruction
         return $processedArgs;
     }
 
+    /**
+     * Prepares the arguments and returns them as Variables for easier manipulation.
+     *
+     * @return Variable[] The prepared args as a Var array.
+     */
     public function prepareArgsForExecution(): array
     {
         $preparedArgs = [];
@@ -60,11 +65,21 @@ abstract class RawInstruction
         return $preparedArgs;
     }
 
+    /**
+     * Opcode getter.
+     *
+     * @return string The opcode.
+     */
     public function getOpCode(): string
     {
         return $this->opCode;
     }
 
+    /**
+     * Arguments getter.
+     *
+     * @return Arg[] The arguments as an array.
+     */
     public function getArguments(): array
     {
         return $this->arguments;
@@ -554,7 +569,7 @@ class INT2CHAR extends RawInstruction
         }
         $unicodeValue = $variables[1]->getValue();
         $char = mb_chr($unicodeValue, 'UTF-8');
-        if ($char === false) {
+        if ($char == false) {
             echo "INT2CHAR: invalid Unicode value\n";
             exit(58);
         }
@@ -622,7 +637,7 @@ class READ extends RawInstruction
         $type = $variables[1]->getValue();
         $input = $this->interpreter->readInput($type);
 
-        if ($input === null) {
+        if ($input == null) {
             $variables[0]->setValue(null);
             $variables[0]->setType('nil');
             return;
@@ -636,8 +651,8 @@ class READ extends RawInstruction
                 $variables[0]->setType('nil');
             }
         } elseif ($type === 'bool') {
-            if ($input === true || $input === false) {
-                $variables[0]->setValue($input === true);
+            if ($input == true || $input == false) {
+                $variables[0]->setValue($input == true);
                 $variables[0]->setType('bool');
             } else {
                 $variables[0]->setValue(null);

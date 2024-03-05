@@ -29,7 +29,7 @@ class Interpreter extends AbstractInterpreter
         $this->dataStack = new Stack();
 
         while ($this->instructionPointer < count($this->instructions)) {
-            
+
             $currentInstructionPointer = $this->instructionPointer;
             $this->instructions[$currentInstructionPointer]->execute();
 
@@ -107,7 +107,7 @@ class Interpreter extends AbstractInterpreter
     public function jmp_label(string $label): void
     {
         if (isset($this->labelDefinitions[$label])) {
-            $this->instructionPointer = $this->labelDefinitions[$label];
+            $this->instructionPointer = intval($this->labelDefinitions[$label]);
         } else {
             echo "Label $label not found\n";
             exit(52); 
