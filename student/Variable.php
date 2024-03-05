@@ -15,9 +15,14 @@ class Variable{
         $this->value = $value;
     }
 
-    public function getName(): string
+    public function getName(): string|null
     {
         return $this->name;
+    }
+
+    public function getType(): string|null
+    {
+        return $this->type;
     }
 
     public function getValue(): string|int|bool|null
@@ -25,9 +30,19 @@ class Variable{
         return $this->value;
     }
 
+    public function setName(string|null $name): void
+    {
+        $this->name = $name;
+    }
+
     public function setValue(string|int|bool|null $value): void
     {
         $this->value = $value;
+    }
+
+    public function setType(string|null $type): void
+    {
+        $this->type = $type;
     }
 
     // function that checks if variable is initialized
@@ -36,7 +51,7 @@ class Variable{
         if ($this->value === null && $this->type === null) {
             // exit program
             echo "Variable {$this->name} is not initialized\n";
-            exit(21);
+            exit(56);
         }
 
         return true;

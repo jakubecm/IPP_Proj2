@@ -15,6 +15,7 @@ class Interpreter extends AbstractInterpreter
     private int $instructionPointer;
     public FrameHandler $frameHandler;
     public Stack $callStack;
+    public Stack $dataStack;
     
 
     public function execute(): int
@@ -22,6 +23,8 @@ class Interpreter extends AbstractInterpreter
         $this->loadAndPrepareInstructions();
         $this->frameHandler = new FrameHandler();
         $this->callStack = new Stack();
+        $this->dataStack = new Stack();
+
         $previousInstructionPointer = $this->instructionPointer;
 
         while ($this->instructionPointer < count($this->instructions)) {
@@ -34,10 +37,11 @@ class Interpreter extends AbstractInterpreter
             $previousInstructionPointer = $this->instructionPointer;
             
         }
+        
         return 0;
 
 
-        // $val = $this->input->readString();
+        //$val = $this->input->readString();
         // $this->stderr->writeString("stderr");
         //throw new NotImplementedException;
     }
@@ -97,5 +101,33 @@ class Interpreter extends AbstractInterpreter
         // label not found
         echo "Label $label not found\n";
         exit(52);
+    }
+
+    public function readInput(string $type): string|int|bool
+    {
+        if ($type === 'int') {
+            return $this->input->readInt();
+        } elseif ($type === 'bool') {
+            return $this->input->readBool();
+        } elseif ($type === 'string') {
+            return $this->input->readString();
+        } else {
+            throw new NotImplementedException;
+        }
+    }
+
+    public function writeOutput(string|null $type, string|int|bool|null $value): void
+    {
+        if ($type === 'int') {
+            $this->stdout->writeInt($value);
+        } elseif ($type === 'bool') {
+            $this->stdout->writeBool($value);
+        } elseif ($type === 'string') {
+            $this->stdout->writeString($value);
+        } elseif ($type == null) {
+            $this->stdout->writeString('');
+        } else {
+            throw new NotImplementedException;
+        }
     }
 }
