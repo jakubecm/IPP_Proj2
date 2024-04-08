@@ -12,8 +12,8 @@ class XMLValidator
 
         foreach ($instructions as $instruction) {
 
-            if(!$instruction instanceof \DOMElement) {
-                echo "Internal error - XML structure.\n";
+            if (!$instruction instanceof \DOMElement) {
+                //echo "Internal error - XML structure.\n";
                 exit(99);
             }
 
@@ -21,12 +21,12 @@ class XMLValidator
 
             if (isset($orderValues[$order])) {
                 // Duplicate order found
-                echo "Error: Duplicate order '$order' found.\n";
+                //echo "Error: Duplicate order '$order' found.\n";
                 exit(32); // Use an appropriate error code or handling mechanism
             }
             if (intval($order) < 1) {
                 // Negative order found
-                echo "Error: Negative order '$order' found.\n";
+                //echo "Error: Negative order '$order' found.\n";
                 exit(32);
             }
             $orderValues[$order] = true;
@@ -38,7 +38,7 @@ class XMLValidator
         // Validate allowed parts of the XML tree
         $invalidNodes = $xpath->query('//*[not(self::program or self::instruction or self::arg1 or self::arg2 or self::arg3)]');
         if ($invalidNodes->length > 0) {
-            echo "Error: Invalid XML structure.\n";
+            //echo "Error: Invalid XML structure.\n";
             exit(32);
         }
     }
@@ -53,7 +53,7 @@ class XMLValidator
             if ($arg !== null) {
                 if ($i > $lastArgFound + 1) {
                     // If there's a gap in the sequence, throw an error
-                    echo "Error: arg$i exists without arg" . ($i - 1) . "\n";
+                    //echo "Error: arg$i exists without arg" . ($i - 1) . "\n";
                     exit(32);
                 }
                 $lastArgFound = $i;

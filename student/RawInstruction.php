@@ -99,9 +99,9 @@ class MOVE extends RawInstruction
     public function execute(): void
     {
         $variables = $this->prepareArgsForExecution();
-        
+
         if (count($variables) !== 2) {
-            echo "MOVE: invalid number of arguments\n";
+            //echo "MOVE: invalid number of arguments\n";
             exit(32);
         }
         $variables[0]->setValue($variables[1]->getValue());
@@ -166,7 +166,7 @@ class DEFVAR extends RawInstruction
     public function execute(): void
     {
         if (count($this->arguments) !== 1) {
-            echo "DEFVAR: invalid number of arguments\n";
+            //echo "DEFVAR: invalid number of arguments\n";
             exit(32);
         }
         $this->interpreter->frameHandler->insertVariable($this->arguments[0]->value);
@@ -203,10 +203,10 @@ class RETURN_I extends RawInstruction
     {
         if ($this->interpreter->callStack->isEmpty()) {
             // exit program
-            echo "Call stack is empty\n";
+            //echo "Call stack is empty\n";
             exit(56);
         }
-        
+
         $next_ip = $this->interpreter->callStack->pop();
         $this->interpreter->setInstructionPointer($next_ip);
     }
@@ -225,10 +225,11 @@ class PUSHS extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 1) {
-            echo "PUSHS: invalid number of arguments\n";
+            //echo "PUSHS: invalid number of arguments\n";
             exit(32);
         }
-        $this->interpreter->dataStack->push($variables[0]);
+        $item = new Variable($variables[0]->getName(), $variables[0]->getType(), $variables[0]->getValue());
+        $this->interpreter->dataStack->push($item);
     }
 }
 
@@ -244,19 +245,18 @@ class POPS extends RawInstruction
     public function execute(): void
     {
         if ($this->interpreter->dataStack->isEmpty()) {
-            echo "Data stack is empty\n";
+            //echo "Data stack is empty\n";
             exit(56);
         }
         $variable = $this->prepareArgsForExecution();
 
         if (count($variable) !== 1) {
-            echo "POPS: invalid number of arguments\n";
+            //echo "POPS: invalid number of arguments\n";
             exit(32);
         }
         $value_to_set = $this->interpreter->dataStack->pop();
         $variable[0]->setValue($value_to_set->getValue());
         $variable[0]->setType($value_to_set->getType());
-        
     }
 }
 
@@ -275,12 +275,12 @@ class ADD extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            echo "ADD: invalid number of arguments\n";
+            //echo "ADD: invalid number of arguments\n";
             exit(32);
         }
-        
+
         if ($variables[1]->getType() != 'int' || $variables[2]->getType() != 'int') {
-            echo "ADD: symb1 and symb2 must be of type int\n";
+            //echo "ADD: symb1 and symb2 must be of type int\n";
             exit(53);
         }
         $variables[0]->setValue($variables[1]->getValue() + $variables[2]->getValue());
@@ -303,12 +303,12 @@ class SUB extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            echo "SUB: invalid number of arguments\n";
+            //echo "SUB: invalid number of arguments\n";
             exit(32);
         }
-        
-        if ($variables[1]->getType() != 'int' && $variables[2]->getType() != 'int') {
-            echo "SUB: symb1 and symb2 must be of type int\n";
+
+        if ($variables[1]->getType() != 'int' || $variables[2]->getType() != 'int') {
+            //echo "SUB: symb1 and symb2 must be of type int\n";
             exit(53);
         }
         $variables[0]->setValue($variables[1]->getValue() - $variables[2]->getValue());
@@ -331,12 +331,12 @@ class MUL extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            echo "MUL: invalid number of arguments\n";
+            //echo "MUL: invalid number of arguments\n";
             exit(32);
         }
-        
+
         if ($variables[1]->getType() != 'int' || $variables[2]->getType() != 'int') {
-            echo "MUL: symb1 and symb2 must be of type int\n";
+            //echo "MUL: symb1 and symb2 must be of type int\n";
             exit(53);
         }
         $variables[0]->setValue($variables[1]->getValue() * $variables[2]->getValue());
@@ -360,16 +360,16 @@ class IDIV extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            echo "IDIV: invalid number of arguments\n";
+            //echo "IDIV: invalid number of arguments\n";
             exit(32);
         }
-        
-        if ($variables[1]->getType() != 'int' && $variables[2]->getType() != 'int') {
-            echo "IDIV: symb1 and symb2 must be of type int\n";
+
+        if ($variables[1]->getType() != 'int' || $variables[2]->getType() != 'int') {
+            //echo "IDIV: symb1 and symb2 must be of type int\n";
             exit(53);
         }
         if ($variables[2]->getValue() == 0) {
-            echo "IDIV: division by zero\n";
+            //echo "IDIV: division by zero\n";
             exit(57);
         }
         $variables[0]->setValue(intval($variables[1]->getValue() / $variables[2]->getValue()));
@@ -394,12 +394,17 @@ class LT extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            echo "LT: invalid number of arguments\n";
+            //echo "LT: invalid number of arguments\n";
             exit(32);
         }
-        
+
+        if ($variables[1]->getType() != $variables[2]->getType()) {
+            //echo "LT: symb1 and symb2 must be of the same type\n";
+            exit(53);
+        }
+
         if ($variables[1]->getType() === 'nil' || $variables[2]->getType() === 'nil') {
-            echo "LT: operands cannot be nil\n";
+            //echo "LT: operands cannot be nil\n";
             exit(53);
         }
         $variables[0]->setValue($variables[1]->getValue() < $variables[2]->getValue());
@@ -424,12 +429,17 @@ class GT extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            echo "GT: invalid number of arguments\n";
+            //echo "GT: invalid number of arguments\n";
             exit(32);
         }
-        
+
         if ($variables[1]->getType() == 'nil' || $variables[2]->getType() == 'nil') {
-            echo "GT: operands cannot be nil\n";
+            //echo "GT: operands cannot be nil\n";
+            exit(53);
+        }
+
+        if ($variables[1]->getType() != $variables[2]->getType()) {
+            //echo "GT: symb1 and symb2 must be of the same type\n";
             exit(53);
         }
         $variables[0]->setValue($variables[1]->getValue() > $variables[2]->getValue());
@@ -453,10 +463,14 @@ class EQ extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            echo "EQ: invalid number of arguments\n";
+            //echo "EQ: invalid number of arguments\n";
             exit(32);
         }
-        $variables[0]->setValue($variables[1]->getValue() == $variables[2]->getValue());
+        if (($variables[1]->getType() != 'nil' && $variables[2]->getType() != 'nil') && ($variables[1]->getType() != $variables[2]->getType())) {
+            //echo "EQ: symb1 and symb2 must be of the same type\n";
+            exit(53);
+        }
+        $variables[0]->setValue($variables[1]->getValue() === $variables[2]->getValue());
         $variables[0]->setType('bool');
     }
 }
@@ -476,12 +490,12 @@ class AND_I extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            echo "AND: invalid number of arguments\n";
+            //echo "AND: invalid number of arguments\n";
             exit(32);
         }
-        
-        if ($variables[1]->getType() != 'bool' && $variables[2]->getType() != 'bool') {
-            echo "AND: symb1 and symb2 must be of type bool\n";
+
+        if ($variables[1]->getType() != 'bool' || $variables[2]->getType() != 'bool') {
+            //echo "AND: symb1 and symb2 must be of type bool\n";
             exit(53);
         }
         $variables[0]->setValue($variables[1]->getValue() && $variables[2]->getValue());
@@ -504,12 +518,12 @@ class OR_I extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            echo "OR: invalid number of arguments\n";
+            //echo "OR: invalid number of arguments\n";
             exit(32);
         }
-        
-        if ($variables[1]->getType() != 'bool' && $variables[2]->getType() != 'bool') {
-            echo "OR: symb1 and symb2 must be of type bool\n";
+
+        if ($variables[1]->getType() != 'bool' || $variables[2]->getType() != 'bool') {
+            //echo "OR: symb1 and symb2 must be of type bool\n";
             exit(53);
         }
         $variables[0]->setValue($variables[1]->getValue() || $variables[2]->getValue());
@@ -531,12 +545,12 @@ class NOT_I extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 2) {
-            echo "NOT: invalid number of arguments\n";
+            //echo "NOT: invalid number of arguments\n";
             exit(32);
         }
-        
+
         if ($variables[1]->getType() != 'bool') {
-            echo "NOT: symb must be of type bool\n";
+            //echo "NOT: symb must be of type bool\n";
             exit(53);
         }
         $variables[0]->setValue(!$variables[1]->getValue());
@@ -559,18 +573,18 @@ class INT2CHAR extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 2) {
-            echo "INT2CHAR: invalid number of arguments\n";
+            //echo "INT2CHAR: invalid number of arguments\n";
             exit(32);
         }
-        
+
         if ($variables[1]->getType() != 'int') {
-            echo "INT2CHAR: symb must be of type int\n";
+            //echo "INT2CHAR: symb must be of type int\n";
             exit(53);
         }
         $unicodeValue = $variables[1]->getValue();
         $char = mb_chr($unicodeValue, 'UTF-8');
         if ($char == false) {
-            echo "INT2CHAR: invalid Unicode value\n";
+            //echo "INT2CHAR: invalid Unicode value\n";
             exit(58);
         }
         $variables[0]->setValue($char);
@@ -594,18 +608,18 @@ class STRI2INT extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            echo "STRI2INT: invalid number of arguments\n";
+            //echo "STRI2INT: invalid number of arguments\n";
             exit(32);
         }
-        
-        if ($variables[1]->getType() != 'string' && $variables[2]->getType() != 'int') {
-            echo "STRI2INT: symb1 must be of type string and symb2 must be of type int\n";
+
+        if ($variables[1]->getType() != 'string' || $variables[2]->getType() != 'int') {
+            //echo "STRI2INT: symb1 must be of type string and symb2 must be of type int\n";
             exit(53);
         }
         $string = $variables[1]->getValue();
         $position = $variables[2]->getValue();
         if ($position < 0 || $position >= mb_strlen($string, 'UTF-8')) {
-            echo "STRI2INT: invalid position\n";
+            //echo "STRI2INT: invalid position\n";
             exit(58);
         }
         $char = mb_substr($string, $position, 1, 'UTF-8');
@@ -631,14 +645,18 @@ class READ extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 2) {
-            echo "READ: invalid number of arguments\n";
+            //echo "READ: invalid number of arguments\n";
+            exit(32);
+        }
+        if ($variables[1]->getType() != 'type') {
+            //echo "READ: type must be of type type\n";
             exit(32);
         }
         $type = $variables[1]->getValue();
         $input = $this->interpreter->readInput($type);
 
         if ($input == null) {
-            $variables[0]->setValue(null);
+            $variables[0]->setValue('nil');
             $variables[0]->setType('nil');
             return;
         }
@@ -647,7 +665,7 @@ class READ extends RawInstruction
                 $variables[0]->setValue(intval($input));
                 $variables[0]->setType('int');
             } else {
-                $variables[0]->setValue(null);
+                $variables[0]->setValue('nil');
                 $variables[0]->setType('nil');
             }
         } elseif ($type === 'bool') {
@@ -655,7 +673,7 @@ class READ extends RawInstruction
                 $variables[0]->setValue($input == true);
                 $variables[0]->setType('bool');
             } else {
-                $variables[0]->setValue(null);
+                $variables[0]->setValue('nil');
                 $variables[0]->setType('nil');
             }
         } elseif ($type === 'string') {
@@ -679,7 +697,7 @@ class WRITE extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 1) {
-            echo "WRITE: invalid number of arguments\n";
+            //echo "WRITE: invalid number of arguments\n";
             exit(32);
         }
         $variables[0]->isInitialized(); // reading from an undefined variable leads to error 56
@@ -703,12 +721,12 @@ class CONCAT extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            echo "CONCAT: invalid number of arguments\n";
+            //echo "CONCAT: invalid number of arguments\n";
             exit(32);
         }
-        
-        if ($variables[1]->getType() != 'string' && $variables[2]->getType() != 'string') {
-            echo "CONCAT: symb1 and symb2 must be of type string\n";
+
+        if ($variables[1]->getType() != 'string' || $variables[2]->getType() != 'string') {
+            //echo "CONCAT: symb1 and symb2 must be of type string\n";
             exit(53);
         }
         $variables[0]->setValue($variables[1]->getValue() . $variables[2]->getValue());
@@ -730,12 +748,12 @@ class STRLEN extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 2) {
-            echo "STRLEN: invalid number of arguments\n";
+            //echo "STRLEN: invalid number of arguments\n";
             exit(32);
         }
-        
+
         if ($variables[1]->getType() != 'string') {
-            echo "STRLEN: symb must be of type string\n";
+            //echo "STRLEN: symb must be of type string\n";
             exit(53);
         }
         $variables[0]->setValue(mb_strlen($variables[1]->getValue(), 'UTF-8'));
@@ -759,18 +777,18 @@ class GETCHAR extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            echo "GETCHAR: invalid number of arguments\n";
+            //echo "GETCHAR: invalid number of arguments\n";
             exit(32);
         }
-        
-        if ($variables[1]->getType() != 'string' && $variables[2]->getType() != 'int') {
-            echo "GETCHAR: symb1 must be of type string and symb2 must be of type int\n";
+
+        if ($variables[1]->getType() != 'string' || $variables[2]->getType() != 'int') {
+            //echo "GETCHAR: symb1 must be of type string and symb2 must be of type int\n";
             exit(53);
         }
         $string = $variables[1]->getValue();
         $position = $variables[2]->getValue();
         if ($position < 0 || $position >= mb_strlen($string, 'UTF-8')) {
-            echo "GETCHAR: invalid position\n";
+            //echo "GETCHAR: invalid position\n";
             exit(58);
         }
         $char = mb_substr($string, $position, 1, 'UTF-8');
@@ -795,19 +813,19 @@ class SETCHAR extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            echo "SETCHAR: invalid number of arguments\n";
+            //echo "SETCHAR: invalid number of arguments\n";
             exit(32);
         }
-        
-        if ($variables[1]->getType() != 'int' && $variables[2]->getType() != 'string') {
-            echo "SETCHAR: symb1 must be of type int and symb2 must be of type string\n";
+
+        if ($variables[1]->getType() != 'int' || $variables[2]->getType() != 'string') {
+            //echo "SETCHAR: symb1 must be of type int and symb2 must be of type string\n";
             exit(53);
         }
         $string = $variables[0]->getValue();
         $position = $variables[1]->getValue();
         $char = $variables[2]->getValue();
         if ($position < 0 || $position >= mb_strlen($string, 'UTF-8')) {
-            echo "SETCHAR: invalid position\n";
+            //echo "SETCHAR: invalid position\n";
             exit(58);
         }
         $string = mb_substr($string, 0, $position, 'UTF-8') . $char . mb_substr($string, $position + 1, null, 'UTF-8');
@@ -830,16 +848,15 @@ class TYPE extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 2) {
-            echo "TYPE: invalid number of arguments\n";
+            //echo "TYPE: invalid number of arguments\n";
             exit(32);
         }
 
         $symb_type = $variables[1]->getType();
 
-        if ($symb_type == null){
+        if ($symb_type == null) {
             $variables[0]->setValue("");
-        }
-        else{
+        } else {
             $variables[0]->setValue($symb_type);
         }
 
@@ -875,7 +892,7 @@ class JUMP extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 1) {
-            echo "JUMP: invalid number of arguments\n";
+            //echo "JUMP: invalid number of arguments\n";
             exit(32);
         }
         $this->interpreter->jmp_label($variables[0]->getValue());
@@ -897,8 +914,12 @@ class JUMPIFEQ extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            echo "JUMPIFEQ: invalid number of arguments\n";
+            //echo "JUMPIFEQ: invalid number of arguments\n";
             exit(32);
+        }
+
+        if ($variables[1]->getType() != $variables[2]->getType()) {
+            exit(53);
         }
 
         if ($variables[1]->getType() === $variables[2]->getType() && $variables[1]->getValue() === $variables[2]->getValue()) {
@@ -922,8 +943,12 @@ class JUMPIFNEQ extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            echo "JUMPIFNEQ: invalid number of arguments\n";
+            //echo "JUMPIFNEQ: invalid number of arguments\n";
             exit(32);
+        }
+
+        if ($variables[1]->getType() != $variables[2]->getType()) {
+            exit(53);
         }
 
         if ($variables[1]->getType() === $variables[2]->getType() && $variables[1]->getValue() !== $variables[2]->getValue()) {
@@ -946,12 +971,17 @@ class EXIT_I extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 1) {
-            echo "EXIT: invalid number of arguments\n";
+            //echo "EXIT: invalid number of arguments\n";
             exit(32);
         }
 
+        if ($variables[0]->getType() !== 'int') {
+            //echo "EXIT: exit code must be of type int\n";
+            exit(53);
+        }
+
         if ($variables[0]->getType() !== 'int' || $variables[0]->getValue() < 0 || $variables[0]->getValue() > 9) {
-            echo "EXIT: exit code must be of type int in interval <0,9>\n";
+            //echo "EXIT: exit code must be of type int in interval <0,9>\n";
             exit(57);
         }
         exit($variables[0]->getValue());
@@ -981,6 +1011,6 @@ class BREAK_I extends RawInstruction
 {
     public function execute(): void
     {
-       return;
+        return;
     }
 }

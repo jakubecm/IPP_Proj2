@@ -81,7 +81,7 @@ class InstructionFactory
             case 'BREAK':
                 return new BREAK_I($interpret, $xmlElement);
             default:
-                echo "Unknown opcode: $opcode\n";
+                $interpret->writeError("Invalid opcode: {$opcode}\n");
                 exit(32);
         }
     }

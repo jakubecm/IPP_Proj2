@@ -1,16 +1,19 @@
 <?php
 
 namespace IPP\Student;
+
 use IPP\Core\ReturnCode;
 
 
-class Arg {
+class Arg
+{
     public Interpreter $interpreter;
     public string $type;
     public string|int|bool|null $value;
 
 
-    public function __construct(Interpreter $interpreter, string $type, string $value){
+    public function __construct(Interpreter $interpreter, string $type, string $value)
+    {
         $this->interpreter = $interpreter;
         $this->type = $type;
         $this->value = $value;
@@ -18,28 +21,26 @@ class Arg {
     }
 
     // write a method that will check the argument type and cast it to the value
-    private function castValue(): void{
+    private function castValue(): void
+    {
 
-        switch ($this->type){
+        switch ($this->type) {
             case 'int':
                 // it can be a decimal, hexadecimal or octal number
-                if(preg_match('/^0x[0-9a-f]+$/i', strval($this->value))){
+                if (preg_match('/^0x[0-9a-f]+$/i', strval($this->value))) {
                     $this->value = intval($this->value, 16);
                     break;
-                }
-                elseif(preg_match('/^0[0-7]+$/i', strval($this->value))){
+                } elseif (preg_match('/^0[0-7]+$/i', strval($this->value))) {
                     $this->value = intval($this->value, 8);
                     break;
-                }
-                elseif(preg_match('/^-?\d+$/', strval($this->value))){
+                } elseif (preg_match('/^-?\d+$/', strval($this->value))) {
                     $this->value = intval($this->value);
                     break;
-                }
-                else{
+                } else {
                     echo "Invalid int value: {$this->value}\n";
                     exit(ReturnCode::INVALID_SOURCE_STRUCTURE);
                 }
-                
+
             case 'bool':
                 $this->value = $this->value === 'true';
                 break;
@@ -56,18 +57,18 @@ class Arg {
                 break;
             case 'type':
                 $allowedTypes = ['int', 'bool', 'string'];
-                if(!in_array($this->value, $allowedTypes)){
-                    echo "Invalid type value: {$this->value}\n";
+                if (!in_array($this->value, $allowedTypes)) {
+                    $this->interpreter->writeError("Invalid type: {$this->value}\n");
                     exit(ReturnCode::INVALID_SOURCE_STRUCTURE);
                 }
                 break;
             case 'nil':
                 break;
 
-            // add cases for var, label, type, nil???
+                // add cases for var, label, type, nil???
             default:
-                throw new \Exception("Unknown type: {$this->type}");
+                $this->interpreter->writeError("Invalid type: {$this->type}\n");
+                exit(ReturnCode::INVALID_SOURCE_STRUCTURE);
         }
     }
-
 }

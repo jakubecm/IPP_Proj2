@@ -19,7 +19,7 @@ class Interpreter extends AbstractInterpreter
     public FrameHandler $frameHandler;
     public Stack $callStack;
     public Stack $dataStack;
-    
+
 
     public function execute(): int
     {
@@ -39,7 +39,7 @@ class Interpreter extends AbstractInterpreter
                 $this->instructionPointer++;
             }
         }
-        
+
         return 0;
     }
 
@@ -96,10 +96,10 @@ class Interpreter extends AbstractInterpreter
             if ($instruction->getOpCode() === 'LABEL') {
                 $labelName = $instruction->getArguments()[0]->value;
                 if (isset($this->labelDefinitions[$labelName])) {
-                    echo "Error: Label '$labelName' redefined in sorted instructions.\n";
-                    exit(52); 
+                    $this->writeError("Error: Label '$labelName' already defined.\n");
+                    exit(52);
                 }
-                $this->labelDefinitions[$labelName] = $index; 
+                $this->labelDefinitions[$labelName] = $index;
             }
         }
     }
@@ -109,12 +109,12 @@ class Interpreter extends AbstractInterpreter
         if (isset($this->labelDefinitions[$label])) {
             $this->instructionPointer = intval($this->labelDefinitions[$label]);
         } else {
-            echo "Label $label not found\n";
-            exit(52); 
+            $this->writeError("Error: Label '$label' not defined.\n");
+            exit(52);
         }
     }
 
-    public function readInput(string $type): string|int|bool
+    public function readInput(string $type): string|int|bool|null
     {
         if ($type === 'int') {
             return $this->input->readInt();
@@ -135,10 +135,15 @@ class Interpreter extends AbstractInterpreter
             $this->stdout->writeBool($value);
         } elseif ($type === 'string') {
             $this->stdout->writeString($value);
-        } elseif ($type == null) {
+        } elseif ($type == null || $type === 'nil') {
             $this->stdout->writeString('');
         } else {
             throw new NotImplementedException;
         }
+    }
+
+    public function writeError(string $message): void
+    {
+        $this->stderr->writeString($message);
     }
 }

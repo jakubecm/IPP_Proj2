@@ -50,7 +50,7 @@ class Variable{
     {
         if ($this->value === null && $this->type === null) {
             // exit program
-            echo "Variable {$this->name} is not initialized\n";
+            //echo "Variable {$this->name} is not initialized\n";
             exit(56);
         }
 

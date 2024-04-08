@@ -30,7 +30,7 @@ class FrameHandler{
             case 'LF':
                 if ($this->localFrame->isEmpty()) {
                     // exit program
-                    echo "Local frame is empty\n";
+                    //echo "Local frame is empty\n";
                     exit(55);
                 }
                 $this->localFrame->top()->addVariable($var_name);
@@ -39,14 +39,14 @@ class FrameHandler{
                 // check if temporary frame exists
                 if ($this->temporaryFrame === null) {
                     // exit program
-                    echo "Temporary frame does not exist\n";
+                    //echo "Temporary frame does not exist\n";
                     exit(55);
                 }
                 $this->temporaryFrame->addVariable($var_name);
                 break;
             default:
                 // exit program
-                echo "Invalid frame\n";
+                //echo "Invalid frame\n";
                 exit(32);
         }
 
@@ -65,7 +65,7 @@ class FrameHandler{
             case 'LF':
                 if ($this->localFrame->isEmpty()) {
                     // exit program
-                    echo "Local frame is empty\n";
+                    //echo "Local frame is empty\n";
                     exit(55);
                 }
                 return $this->localFrame->top()->getVariable($var_name);
@@ -73,13 +73,13 @@ class FrameHandler{
                 // check if temporary frame exists
                 if ($this->temporaryFrame === null) {
                     // exit program
-                    echo "Temporary frame does not exist\n";
+                    //echo "Temporary frame does not exist\n";
                     exit(55);
                 }
                 return $this->temporaryFrame->getVariable($var_name);
             default:
                 // exit program
-                echo "Invalid frame\n";
+                //echo "Invalid frame\n";
                 exit(32);
         }
     }
@@ -93,7 +93,7 @@ class FrameHandler{
     {
         if ($this->temporaryFrame === null) {
             // exit program
-            echo "Temporary frame does not exist\n";
+            //echo "Temporary frame does not exist\n";
             exit(55);
         }
         $this->localFrame->push($this->temporaryFrame);
@@ -104,7 +104,7 @@ class FrameHandler{
     {
         if ($this->localFrame->isEmpty()) {
             // exit program
-            echo "Local framestack is empty\n";
+            //echo "Local framestack is empty\n";
             exit(55);
         }
         $this->temporaryFrame = $this->localFrame->pop();
