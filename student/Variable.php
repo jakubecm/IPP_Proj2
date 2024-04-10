@@ -2,6 +2,8 @@
 
 namespace IPP\Student;
 
+use IPP\Student\Exceptions\ValueException;
+
 class Variable{
 
     private string|null $name;
@@ -49,9 +51,8 @@ class Variable{
     public function isInitialized(): bool
     {
         if ($this->value === null && $this->type === null) {
-            // exit program
-            //echo "Variable {$this->name} is not initialized\n";
-            exit(56);
+
+            throw new ValueException("Variable {$this->name} is not initialized");
         }
 
         return true;

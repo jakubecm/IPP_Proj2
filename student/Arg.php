@@ -3,7 +3,7 @@
 namespace IPP\Student;
 
 use IPP\Core\ReturnCode;
-
+use IPP\Student\Exceptions\SourceStructureException;
 
 class Arg
 {
@@ -37,8 +37,7 @@ class Arg
                     $this->value = intval($this->value);
                     break;
                 } else {
-                    echo "Invalid int value: {$this->value}\n";
-                    exit(ReturnCode::INVALID_SOURCE_STRUCTURE);
+                    throw new SourceStructureException;
                 }
 
             case 'bool':
@@ -58,8 +57,7 @@ class Arg
             case 'type':
                 $allowedTypes = ['int', 'bool', 'string'];
                 if (!in_array($this->value, $allowedTypes)) {
-                    $this->interpreter->writeError("Invalid type: {$this->value}\n");
-                    exit(ReturnCode::INVALID_SOURCE_STRUCTURE);
+                    throw new SourceStructureException;
                 }
                 break;
             case 'nil':
@@ -67,8 +65,7 @@ class Arg
 
                 // add cases for var, label, type, nil???
             default:
-                $this->interpreter->writeError("Invalid type: {$this->type}\n");
-                exit(ReturnCode::INVALID_SOURCE_STRUCTURE);
+                throw new SourceStructureException;
         }
     }
 }

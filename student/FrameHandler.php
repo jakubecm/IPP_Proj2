@@ -2,7 +2,11 @@
 
 namespace IPP\Student;
 
-class FrameHandler{
+use IPP\Student\Exceptions\FrameAccessException;
+use IPP\Student\Exceptions\SourceStructureException;
+
+class FrameHandler
+{
 
     private Frame $globalFrame;
     private Frame|null $temporaryFrame;
@@ -29,27 +33,23 @@ class FrameHandler{
                 break;
             case 'LF':
                 if ($this->localFrame->isEmpty()) {
-                    // exit program
-                    //echo "Local frame is empty\n";
-                    exit(55);
+
+                    throw new FrameAccessException("Local frame is empty");
                 }
                 $this->localFrame->top()->addVariable($var_name);
                 break;
             case 'TF':
                 // check if temporary frame exists
                 if ($this->temporaryFrame === null) {
-                    // exit program
-                    //echo "Temporary frame does not exist\n";
-                    exit(55);
+
+                    throw new FrameAccessException("Temporary frame does not exist");
                 }
                 $this->temporaryFrame->addVariable($var_name);
                 break;
             default:
-                // exit program
-                //echo "Invalid frame\n";
-                exit(32);
-        }
 
+                throw new SourceStructureException("Invalid frame");
+        }
     }
 
     public function findVariable(string $variable): Variable
@@ -64,23 +64,20 @@ class FrameHandler{
                 return $this->globalFrame->getVariable($var_name);
             case 'LF':
                 if ($this->localFrame->isEmpty()) {
-                    // exit program
-                    //echo "Local frame is empty\n";
-                    exit(55);
+
+                    throw new FrameAccessException("Local frame is empty");
                 }
                 return $this->localFrame->top()->getVariable($var_name);
             case 'TF':
                 // check if temporary frame exists
                 if ($this->temporaryFrame === null) {
-                    // exit program
-                    //echo "Temporary frame does not exist\n";
-                    exit(55);
+
+                    throw new FrameAccessException("Temporary frame does not exist");
                 }
                 return $this->temporaryFrame->getVariable($var_name);
             default:
-                // exit program
-                //echo "Invalid frame\n";
-                exit(32);
+
+                throw new SourceStructureException("Invalid frame");
         }
     }
 
@@ -94,7 +91,7 @@ class FrameHandler{
         if ($this->temporaryFrame === null) {
             // exit program
             //echo "Temporary frame does not exist\n";
-            exit(55);
+            throw new FrameAccessException("Temporary frame does not exist");
         }
         $this->localFrame->push($this->temporaryFrame);
         $this->temporaryFrame = null;
@@ -103,9 +100,8 @@ class FrameHandler{
     public function popLocalFrame(): void
     {
         if ($this->localFrame->isEmpty()) {
-            // exit program
-            //echo "Local framestack is empty\n";
-            exit(55);
+
+            throw new FrameAccessException("Local framestack is empty");
         }
         $this->temporaryFrame = $this->localFrame->pop();
     }

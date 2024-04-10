@@ -2,6 +2,12 @@
 
 namespace IPP\Student;
 
+use IPP\Student\Exceptions\OperandTypeException;
+use IPP\Student\Exceptions\OperandValueException;
+use IPP\Student\Exceptions\SourceStructureException;
+use IPP\Student\Exceptions\StringOperationException;
+use IPP\Student\Exceptions\ValueException;
+
 abstract class RawInstruction
 {
 
@@ -101,8 +107,8 @@ class MOVE extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 2) {
-            //echo "MOVE: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for MOVE instruction");
         }
         $variables[0]->setValue($variables[1]->getValue());
         $variables[0]->setType($variables[1]->getType());
@@ -166,8 +172,8 @@ class DEFVAR extends RawInstruction
     public function execute(): void
     {
         if (count($this->arguments) !== 1) {
-            //echo "DEFVAR: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for DEFVAR instruction");
         }
         $this->interpreter->frameHandler->insertVariable($this->arguments[0]->value);
     }
@@ -202,9 +208,8 @@ class RETURN_I extends RawInstruction
     public function execute(): void
     {
         if ($this->interpreter->callStack->isEmpty()) {
-            // exit program
-            //echo "Call stack is empty\n";
-            exit(56);
+
+            throw new ValueException("Call stack is empty");
         }
 
         $next_ip = $this->interpreter->callStack->pop();
@@ -225,8 +230,8 @@ class PUSHS extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 1) {
-            //echo "PUSHS: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for PUSHS instruction");
         }
         $item = new Variable($variables[0]->getName(), $variables[0]->getType(), $variables[0]->getValue());
         $this->interpreter->dataStack->push($item);
@@ -245,14 +250,14 @@ class POPS extends RawInstruction
     public function execute(): void
     {
         if ($this->interpreter->dataStack->isEmpty()) {
-            //echo "Data stack is empty\n";
-            exit(56);
+
+            throw new ValueException("Data stack is empty");
         }
         $variable = $this->prepareArgsForExecution();
 
         if (count($variable) !== 1) {
-            //echo "POPS: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for POPS instruction");
         }
         $value_to_set = $this->interpreter->dataStack->pop();
         $variable[0]->setValue($value_to_set->getValue());
@@ -275,13 +280,13 @@ class ADD extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            //echo "ADD: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for ADD instruction");
         }
 
         if ($variables[1]->getType() != 'int' || $variables[2]->getType() != 'int') {
-            //echo "ADD: symb1 and symb2 must be of type int\n";
-            exit(53);
+
+            throw new OperandTypeException("ADD: symb1 and symb2 must be of type int, but got " . $variables[1]->getType() . " and " . $variables[2]->getType());
         }
         $variables[0]->setValue($variables[1]->getValue() + $variables[2]->getValue());
         $variables[0]->setType('int');
@@ -303,13 +308,13 @@ class SUB extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            //echo "SUB: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for SUB instruction");
         }
 
         if ($variables[1]->getType() != 'int' || $variables[2]->getType() != 'int') {
-            //echo "SUB: symb1 and symb2 must be of type int\n";
-            exit(53);
+
+            throw new OperandTypeException("SUB: symb1 and symb2 must be of type int, but got " . $variables[1]->getType() . " and " . $variables[2]->getType());
         }
         $variables[0]->setValue($variables[1]->getValue() - $variables[2]->getValue());
         $variables[0]->setType('int');
@@ -331,13 +336,13 @@ class MUL extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            //echo "MUL: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for MUL instruction");
         }
 
         if ($variables[1]->getType() != 'int' || $variables[2]->getType() != 'int') {
-            //echo "MUL: symb1 and symb2 must be of type int\n";
-            exit(53);
+
+            throw new OperandTypeException("MUL: symb1 and symb2 must be of type int, but got " . $variables[1]->getType() . " and " . $variables[2]->getType());
         }
         $variables[0]->setValue($variables[1]->getValue() * $variables[2]->getValue());
         $variables[0]->setType('int');
@@ -360,17 +365,17 @@ class IDIV extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            //echo "IDIV: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for IDIV instruction");
         }
 
         if ($variables[1]->getType() != 'int' || $variables[2]->getType() != 'int') {
-            //echo "IDIV: symb1 and symb2 must be of type int\n";
-            exit(53);
+
+            throw new OperandTypeException("IDIV: symb1 and symb2 must be of type int, but got " . $variables[1]->getType() . " and " . $variables[2]->getType());
         }
         if ($variables[2]->getValue() == 0) {
-            //echo "IDIV: division by zero\n";
-            exit(57);
+
+            throw new OperandValueException("IDIV: division by zero detected");
         }
         $variables[0]->setValue(intval($variables[1]->getValue() / $variables[2]->getValue()));
         $variables[0]->setType('int');
@@ -394,18 +399,18 @@ class LT extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            //echo "LT: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for LT instruction");
         }
 
         if ($variables[1]->getType() != $variables[2]->getType()) {
-            //echo "LT: symb1 and symb2 must be of the same type\n";
-            exit(53);
+
+            throw new OperandTypeException("LT: symb1 and symb2 must be of the same type, but got " . $variables[1]->getType() . " and " . $variables[2]->getType());
         }
 
         if ($variables[1]->getType() === 'nil' || $variables[2]->getType() === 'nil') {
-            //echo "LT: operands cannot be nil\n";
-            exit(53);
+
+            throw new OperandTypeException("LT: operands cannot be nil, but got " . $variables[1]->getType() . " and " . $variables[2]->getType());
         }
         $variables[0]->setValue($variables[1]->getValue() < $variables[2]->getValue());
         $variables[0]->setType('bool');
@@ -429,18 +434,18 @@ class GT extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            //echo "GT: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for GT instruction");
         }
 
         if ($variables[1]->getType() == 'nil' || $variables[2]->getType() == 'nil') {
-            //echo "GT: operands cannot be nil\n";
-            exit(53);
+
+            throw new OperandTypeException("GT: operands cannot be nil, but got " . $variables[1]->getType() . " and " . $variables[2]->getType());
         }
 
         if ($variables[1]->getType() != $variables[2]->getType()) {
-            //echo "GT: symb1 and symb2 must be of the same type\n";
-            exit(53);
+
+            throw new OperandTypeException("GT: symb1 and symb2 must be of the same type, but got " . $variables[1]->getType() . " and " . $variables[2]->getType());
         }
         $variables[0]->setValue($variables[1]->getValue() > $variables[2]->getValue());
         $variables[0]->setType('bool');
@@ -463,12 +468,12 @@ class EQ extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            //echo "EQ: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for EQ instruction");
         }
         if (($variables[1]->getType() != 'nil' && $variables[2]->getType() != 'nil') && ($variables[1]->getType() != $variables[2]->getType())) {
-            //echo "EQ: symb1 and symb2 must be of the same type\n";
-            exit(53);
+
+            throw new OperandTypeException("EQ: symb1 and symb2 must be of the same type, but got " . $variables[1]->getType() . " and " . $variables[2]->getType());
         }
         $variables[0]->setValue($variables[1]->getValue() === $variables[2]->getValue());
         $variables[0]->setType('bool');
@@ -490,13 +495,13 @@ class AND_I extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            //echo "AND: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for AND instruction");
         }
 
         if ($variables[1]->getType() != 'bool' || $variables[2]->getType() != 'bool') {
-            //echo "AND: symb1 and symb2 must be of type bool\n";
-            exit(53);
+
+            throw new OperandTypeException("AND: symb1 and symb2 must be of type bool, but got " . $variables[1]->getType() . " and " . $variables[2]->getType());
         }
         $variables[0]->setValue($variables[1]->getValue() && $variables[2]->getValue());
         $variables[0]->setType('bool');
@@ -518,13 +523,13 @@ class OR_I extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            //echo "OR: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for OR instruction");
         }
 
         if ($variables[1]->getType() != 'bool' || $variables[2]->getType() != 'bool') {
-            //echo "OR: symb1 and symb2 must be of type bool\n";
-            exit(53);
+
+            throw new OperandTypeException("OR: symb1 and symb2 must be of type bool, but got " . $variables[1]->getType() . " and " . $variables[2]->getType());
         }
         $variables[0]->setValue($variables[1]->getValue() || $variables[2]->getValue());
         $variables[0]->setType('bool');
@@ -545,13 +550,13 @@ class NOT_I extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 2) {
-            //echo "NOT: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for NOT instruction");
         }
 
         if ($variables[1]->getType() != 'bool') {
-            //echo "NOT: symb must be of type bool\n";
-            exit(53);
+
+            throw new OperandTypeException("NOT: symb must be of type bool");
         }
         $variables[0]->setValue(!$variables[1]->getValue());
         $variables[0]->setType('bool');
@@ -573,19 +578,19 @@ class INT2CHAR extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 2) {
-            //echo "INT2CHAR: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for INT2CHAR instruction");
         }
 
         if ($variables[1]->getType() != 'int') {
-            //echo "INT2CHAR: symb must be of type int\n";
-            exit(53);
+
+            throw new OperandTypeException("INT2CHAR: symb must be of type int");
         }
         $unicodeValue = $variables[1]->getValue();
         $char = mb_chr($unicodeValue, 'UTF-8');
         if ($char == false) {
-            //echo "INT2CHAR: invalid Unicode value\n";
-            exit(58);
+
+            throw new StringOperationException("INT2CHAR: invalid Unicode value");
         }
         $variables[0]->setValue($char);
         $variables[0]->setType('string');
@@ -608,19 +613,19 @@ class STRI2INT extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            //echo "STRI2INT: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for STRI2INT instruction");
         }
 
         if ($variables[1]->getType() != 'string' || $variables[2]->getType() != 'int') {
-            //echo "STRI2INT: symb1 must be of type string and symb2 must be of type int\n";
-            exit(53);
+
+            throw new OperandTypeException("STRI2INT: symb1 must be of type string and symb2 must be of type int");
         }
         $string = $variables[1]->getValue();
         $position = $variables[2]->getValue();
         if ($position < 0 || $position >= mb_strlen($string, 'UTF-8')) {
-            //echo "STRI2INT: invalid position\n";
-            exit(58);
+
+            throw new StringOperationException("STRI2INT: invalid position");
         }
         $char = mb_substr($string, $position, 1, 'UTF-8');
         $unicodeValue = mb_ord($char, 'UTF-8');
@@ -645,12 +650,12 @@ class READ extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 2) {
-            //echo "READ: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for READ instruction");
         }
         if ($variables[1]->getType() != 'type') {
-            //echo "READ: type must be of type type\n";
-            exit(32);
+
+            throw new SourceStructureException("READ: type must be of type 'type' but got " . $variables[1]->getType());
         }
         $type = $variables[1]->getValue();
         $input = $this->interpreter->readInput($type);
@@ -697,8 +702,8 @@ class WRITE extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 1) {
-            //echo "WRITE: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for WRITE instruction");
         }
         $variables[0]->isInitialized(); // reading from an undefined variable leads to error 56
 
@@ -721,13 +726,13 @@ class CONCAT extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            //echo "CONCAT: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for CONCAT instruction");
         }
 
         if ($variables[1]->getType() != 'string' || $variables[2]->getType() != 'string') {
-            //echo "CONCAT: symb1 and symb2 must be of type string\n";
-            exit(53);
+
+            throw new OperandTypeException("CONCAT: symb1 and symb2 must be of type string, but got " . $variables[1]->getType() . " and " . $variables[2]->getType());
         }
         $variables[0]->setValue($variables[1]->getValue() . $variables[2]->getValue());
         $variables[0]->setType('string');
@@ -748,13 +753,13 @@ class STRLEN extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 2) {
-            //echo "STRLEN: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for STRLEN instruction");
         }
 
         if ($variables[1]->getType() != 'string') {
-            //echo "STRLEN: symb must be of type string\n";
-            exit(53);
+
+            throw new OperandTypeException("STRLEN: symb must be of type string");
         }
         $variables[0]->setValue(mb_strlen($variables[1]->getValue(), 'UTF-8'));
         $variables[0]->setType('int');
@@ -777,19 +782,19 @@ class GETCHAR extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            //echo "GETCHAR: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for GETCHAR instruction");
         }
 
         if ($variables[1]->getType() != 'string' || $variables[2]->getType() != 'int') {
-            //echo "GETCHAR: symb1 must be of type string and symb2 must be of type int\n";
-            exit(53);
+
+            throw new OperandTypeException("GETCHAR: symb1 must be of type string and symb2 must be of type int");
         }
         $string = $variables[1]->getValue();
         $position = $variables[2]->getValue();
         if ($position < 0 || $position >= mb_strlen($string, 'UTF-8')) {
-            //echo "GETCHAR: invalid position\n";
-            exit(58);
+
+            throw new StringOperationException("GETCHAR: invalid position");
         }
         $char = mb_substr($string, $position, 1, 'UTF-8');
         $variables[0]->setValue($char);
@@ -813,20 +818,20 @@ class SETCHAR extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            //echo "SETCHAR: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for SETCHAR instruction");
         }
 
         if ($variables[1]->getType() != 'int' || $variables[2]->getType() != 'string') {
-            //echo "SETCHAR: symb1 must be of type int and symb2 must be of type string\n";
-            exit(53);
+
+            throw new OperandTypeException("SETCHAR: symb1 must be of type int and symb2 must be of type string");
         }
         $string = $variables[0]->getValue();
         $position = $variables[1]->getValue();
         $char = $variables[2]->getValue();
         if ($position < 0 || $position >= mb_strlen($string, 'UTF-8')) {
-            //echo "SETCHAR: invalid position\n";
-            exit(58);
+
+            throw new StringOperationException("SETCHAR: invalid position");
         }
         $string = mb_substr($string, 0, $position, 'UTF-8') . $char . mb_substr($string, $position + 1, null, 'UTF-8');
         $variables[0]->setValue($string);
@@ -848,8 +853,8 @@ class TYPE extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 2) {
-            //echo "TYPE: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for TYPE instruction");
         }
 
         $symb_type = $variables[1]->getType();
@@ -892,8 +897,8 @@ class JUMP extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 1) {
-            //echo "JUMP: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for JUMP instruction");
         }
         $this->interpreter->jmp_label($variables[0]->getValue());
     }
@@ -914,12 +919,12 @@ class JUMPIFEQ extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            //echo "JUMPIFEQ: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for JUMPIFEQ instruction");
         }
 
         if ($variables[1]->getType() != $variables[2]->getType()) {
-            exit(53);
+            throw new OperandTypeException("JUMPIFEQ: symb1 and symb2 must be of the same type, but got " . $variables[1]->getType() . " and " . $variables[2]->getType());
         }
 
         if ($variables[1]->getType() === $variables[2]->getType() && $variables[1]->getValue() === $variables[2]->getValue()) {
@@ -943,12 +948,13 @@ class JUMPIFNEQ extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 3) {
-            //echo "JUMPIFNEQ: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for JUMPIFNEQ instruction");
         }
 
         if ($variables[1]->getType() != $variables[2]->getType()) {
-            exit(53);
+
+            throw new OperandTypeException("JUMPIFNEQ: symb1 and symb2 must be of the same type, but got " . $variables[1]->getType() . " and " . $variables[2]->getType());
         }
 
         if ($variables[1]->getType() === $variables[2]->getType() && $variables[1]->getValue() !== $variables[2]->getValue()) {
@@ -971,18 +977,18 @@ class EXIT_I extends RawInstruction
         $variables = $this->prepareArgsForExecution();
 
         if (count($variables) !== 1) {
-            //echo "EXIT: invalid number of arguments\n";
-            exit(32);
+
+            throw new SourceStructureException("Invalid number of arguments for EXIT instruction");
         }
 
         if ($variables[0]->getType() !== 'int') {
-            //echo "EXIT: exit code must be of type int\n";
-            exit(53);
+
+            throw new OperandTypeException("EXIT: symb must be of type int");
         }
 
-        if ($variables[0]->getType() !== 'int' || $variables[0]->getValue() < 0 || $variables[0]->getValue() > 9) {
-            //echo "EXIT: exit code must be of type int in interval <0,9>\n";
-            exit(57);
+        if ($variables[0]->getValue() < 0 || $variables[0]->getValue() > 9) {
+
+            throw new OperandValueException("EXIT: exit code must be of type int in interval <0,9>");
         }
         exit($variables[0]->getValue());
     }

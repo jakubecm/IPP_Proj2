@@ -2,6 +2,8 @@
 
 namespace IPP\Student;
 
+use IPP\Student\Exceptions\SourceStructureException;
+
 require_once 'RawInstruction.php';
 
 class InstructionFactory
@@ -81,8 +83,7 @@ class InstructionFactory
             case 'BREAK':
                 return new BREAK_I($interpret, $xmlElement);
             default:
-                $interpret->writeError("Invalid opcode: {$opcode}\n");
-                exit(32);
+                throw new SourceStructureException("Invalid opcode: {$opcode}");
         }
     }
 }

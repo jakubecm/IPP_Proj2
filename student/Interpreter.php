@@ -3,7 +3,9 @@
 namespace IPP\Student;
 
 use IPP\Core\AbstractInterpreter;
+use IPP\Core\Exception\InternalErrorException;
 use IPP\Core\Exception\NotImplementedException;
+use IPP\Student\Exceptions\SemanticErrorException;
 
 class Interpreter extends AbstractInterpreter
 {
@@ -96,8 +98,8 @@ class Interpreter extends AbstractInterpreter
             if ($instruction->getOpCode() === 'LABEL') {
                 $labelName = $instruction->getArguments()[0]->value;
                 if (isset($this->labelDefinitions[$labelName])) {
-                    $this->writeError("Error: Label '$labelName' already defined.\n");
-                    exit(52);
+
+                    throw new SemanticErrorException("Label '$labelName' already defined.");
                 }
                 $this->labelDefinitions[$labelName] = $index;
             }
@@ -109,8 +111,8 @@ class Interpreter extends AbstractInterpreter
         if (isset($this->labelDefinitions[$label])) {
             $this->instructionPointer = intval($this->labelDefinitions[$label]);
         } else {
-            $this->writeError("Error: Label '$label' not defined.\n");
-            exit(52);
+
+            throw new SemanticErrorException("Label '$label' not defined.");
         }
     }
 
@@ -123,7 +125,7 @@ class Interpreter extends AbstractInterpreter
         } elseif ($type === 'string') {
             return $this->input->readString();
         } else {
-            throw new NotImplementedException;
+            throw new InternalErrorException("Invalid input type '$type'.");
         }
     }
 
@@ -138,7 +140,7 @@ class Interpreter extends AbstractInterpreter
         } elseif ($type == null || $type === 'nil') {
             $this->stdout->writeString('');
         } else {
-            throw new NotImplementedException;
+            throw new InternalErrorException("Invalid output type '$type'.");
         }
     }
 
