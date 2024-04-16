@@ -19,6 +19,13 @@ class FrameHandler
         $this->localFrame = new Stack();
     }
 
+    /**
+     * Inserts a variable into the correct frame.
+     *
+     * @param string $variable The variable to insert.
+     * @throws FrameAccessException If the frame does not exist or is empty
+     * @throws SourceStructureException If the frame is invalid
+     */
     public function insertVariable(string $variable): void
     {
         // split the variable string on symbol @
@@ -52,6 +59,14 @@ class FrameHandler
         }
     }
 
+    /**
+     * Finds a variable in the correct frame.
+     *
+     * @param string $variable The variable to find.
+     * @return Variable The variable.
+     * @throws FrameAccessException If the frame does not exist or is empty
+     * @throws SourceStructureException If the frame is invalid
+     */
     public function findVariable(string $variable): Variable
     {
         // split the variable string on symbol @
@@ -81,22 +96,34 @@ class FrameHandler
         }
     }
 
+    /**
+     * Creates a new temporary frame.
+     */
     public function createTemporaryFrame(): void
     {
         $this->temporaryFrame = new Frame();
     }
 
+    /**
+     * Pushes the temporary frame onto the local framestack.
+     *
+     * @throws FrameAccessException If the temporary frame does not exist
+     */
     public function pushTemporaryFrame(): void
     {
         if ($this->temporaryFrame === null) {
-            // exit program
-            //echo "Temporary frame does not exist\n";
+
             throw new FrameAccessException("Temporary frame does not exist");
         }
         $this->localFrame->push($this->temporaryFrame);
         $this->temporaryFrame = null;
     }
 
+    /**
+     * Pops the top frame from the local framestack.
+     *
+     * @throws FrameAccessException If the local framestack is empty
+     */
     public function popLocalFrame(): void
     {
         if ($this->localFrame->isEmpty()) {

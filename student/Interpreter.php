@@ -45,6 +45,9 @@ class Interpreter extends AbstractInterpreter
         return 0;
     }
 
+    /**
+     * Loads and prepares instructions from the XML file.
+     */
     private function loadAndPrepareInstructions(): void
     {
         $this->xmlFile = $this->source->getDOMDocument();
@@ -73,6 +76,9 @@ class Interpreter extends AbstractInterpreter
         return $parsedInstructions;
     }
 
+    /**
+     * Sorts the instructions by their order attribute.
+     */
     private function sortInstructions(): void
     {
         usort($this->instructions, function ($a, $b) {
@@ -80,16 +86,31 @@ class Interpreter extends AbstractInterpreter
         });
     }
 
+    /**
+     * Returns the current instruction pointer.
+     *
+     * @return int The current instruction pointer.
+     */
     public function getInstructionPointer(): int
     {
         return $this->instructionPointer;
     }
 
+    /**
+     * Sets the instruction pointer.
+     *
+     * @param int $instructionPointer The new instruction pointer.
+     */
     public function setInstructionPointer(int $instructionPointer): void
     {
         $this->instructionPointer = $instructionPointer;
     }
 
+
+    /**
+     * Maps labels to their corresponding instruction index.
+     * @throws SemanticErrorException If a label is already defined.
+     */
     private function mapLabelsToSortedInstructions(): void
     {
         $this->labelDefinitions = [];
@@ -106,6 +127,11 @@ class Interpreter extends AbstractInterpreter
         }
     }
 
+    /**
+     * Jumps to the instruction with the specified label.
+     * @param string $label The label to jump to.
+     * @throws SemanticErrorException If the label is not defined.
+     */
     public function jmp_label(string $label): void
     {
         if (isset($this->labelDefinitions[$label])) {
@@ -116,6 +142,12 @@ class Interpreter extends AbstractInterpreter
         }
     }
 
+    /**
+     * Reads input from the input stream.
+     * @param string $type The type of the input.
+     * @return string|int|bool|null The input value.
+     * @throws InternalErrorException If the input type is invalid.
+     */
     public function readInput(string $type): string|int|bool|null
     {
         if ($type === 'int') {
@@ -129,6 +161,12 @@ class Interpreter extends AbstractInterpreter
         }
     }
 
+    /**
+     * Writes output to the output stream.
+     * @param string|null $type The type of the output.
+     * @param string|int|bool|null $value The output value.
+     * @throws InternalErrorException If the output type is invalid.
+     */
     public function writeOutput(string|null $type, string|int|bool|null $value): void
     {
         if ($type === 'int') {
@@ -144,6 +182,10 @@ class Interpreter extends AbstractInterpreter
         }
     }
 
+    /**
+     * Writes an error message to the error stream.
+     * @param string $message The error message.
+     */
     public function writeError(string $message): void
     {
         $this->stderr->writeString($message);

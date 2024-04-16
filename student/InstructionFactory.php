@@ -8,7 +8,15 @@ require_once 'RawInstruction.php';
 
 class InstructionFactory
 {
-
+    /**
+     * Creates an instruction based on the opcode.
+     *
+     * @param Interpreter $interpret The interpreter instance.
+     * @param \DOMElement $xmlElement The XML element of the instruction.
+     * @param string $opcode The opcode.
+     * @return RawInstruction The instruction instance.
+     * @throws SourceStructureException If the opcode is invalid.
+     */
     public static function createInstruction(Interpreter $interpret, \DOMElement $xmlElement, string $opcode): RawInstruction
     {;
         switch (strtoupper($opcode)) {

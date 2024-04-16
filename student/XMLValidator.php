@@ -7,6 +7,13 @@ use IPP\Student\Exceptions\SourceStructureException;
 
 class XMLValidator
 {
+    /**
+     * Validates the structure of the XML file.
+     *
+     * @param \DOMDocument $xmlFile The XML file to validate
+     * @param Interpreter $interpret The interpreter instance
+     * @throws SourceStructureException If the XML structure is invalid
+     */
     public static function validateXMLStructure(\DOMDocument $xmlFile, Interpreter $interpret): void
     {
         $xpath = new \DOMXPath($xmlFile);
@@ -45,16 +52,22 @@ class XMLValidator
         }
     }
 
+    /**
+     * Validates the sequence of arguments in an instruction.
+     *
+     * @param \DOMElement $instruction The instruction to validate
+     * @throws SourceStructureException If the args sequence is invalid
+     */
     private static function validateArgumentSequence(\DOMElement $instruction): void
     {
-        $maxArgs = 3; // Adjust based on the maximum number of arguments you expect
+        $maxArgs = 3;
         $lastArgFound = 0;
 
         for ($i = 1; $i <= $maxArgs; $i++) {
             $arg = $instruction->getElementsByTagName("arg$i")->item(0);
             if ($arg !== null) {
                 if ($i > $lastArgFound + 1) {
-                    // If there's a gap in the sequence, throw an error
+                    
                     throw new SourceStructureException("Invalid XML structure - arg$i exists without arg" . ($i - 1));
                 }
                 $lastArgFound = $i;

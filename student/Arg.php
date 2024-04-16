@@ -20,7 +20,10 @@ class Arg
         $this->castValue();
     }
 
-    // write a method that will check the argument type and cast it to the value
+    /**
+     * Casts the value to the correct type.
+     * @throws SourceStructureException If the value is not of the correct type.
+     */
     private function castValue(): void
     {
 
@@ -62,8 +65,6 @@ class Arg
                 break;
             case 'nil':
                 break;
-
-                // add cases for var, label, type, nil???
             default:
                 throw new SourceStructureException;
         }

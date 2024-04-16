@@ -15,6 +15,14 @@ class Frame
         $this->variables = [];
     }
 
+
+    /**
+     * Gets the value of a variable from the current frame.
+     *
+     * @param string $name The name of the variable.
+     * @return Variable The variable.
+     * @throws VariableAccessException If the variable does not exist.
+     */
     public function getVariable(string $name): Variable
     {
         if (!array_key_exists($name, $this->variables)) {
@@ -24,6 +32,13 @@ class Frame
         return $this->variables[$name];
     }
 
+
+    /**
+     * Adds the variable to the current frame.
+     *
+     * @param string $var_name The name of the variable.
+     * @throws SemanticErrorException If the variable already exists.
+     */
     public function addVariable(string $var_name): void
     {
         if (array_key_exists($var_name, $this->variables)) {
